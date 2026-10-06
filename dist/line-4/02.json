@@ -1,0 +1,22 @@
+{
+  "name": "The Guarded Pearl",
+  "image": "https://api.imd.fun/artifacts/37b336e77ba397431e38754d5e29308c895efb82bd4029cc2803feb21b9ab9fe",
+  "attributes": [
+    {
+      "trait_type": "Cave",
+      "value": "Base"
+    },
+    {
+      "trait_type": "Wall",
+      "value": "Line 4"
+    },
+    {
+      "trait_type": "Number",
+      "value": 2
+    },
+    {
+      "trait_type": "Left behind",
+      "value": "Source Check"
+    }
+  ]
+}

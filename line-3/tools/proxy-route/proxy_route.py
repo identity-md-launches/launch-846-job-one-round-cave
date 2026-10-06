@@ -13,17 +13,37 @@ SLOTS = {
 }
 PREFIX = '363d3d373d3d3d363d73'
 SUFFIX = '5af43d82803e903d91602b57fd5bf3'
+MAX_RESPONSE_BYTES = 1024 * 1024
+DIRECT_OPENER = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+
+
+def rpc_result(body):
+    """Validate a JSON-RPC 2.0 reply for this tool's fixed request id."""
+    if not isinstance(body, dict) or body.get('jsonrpc') != '2.0':
+        raise ValueError('Malformed JSON-RPC response envelope')
+    request_id = body.get('id')
+    if isinstance(request_id, bool) or request_id != 1:
+        raise ValueError('Mismatched JSON-RPC response id')
+    if 'error' in body:
+        raise ValueError('RPC error: ' + json.dumps(body['error']))
+    if 'result' not in body:
+        raise ValueError('JSON-RPC response has no result')
+    return body['result']
 
 
 def rpc(endpoint, method, params):
     payload = json.dumps({'jsonrpc': '2.0', 'id': 1, 'method': method, 'params': params}).encode()
     request = urllib.request.Request(endpoint, data=payload, headers={
         'Content-Type': 'application/json', 'User-Agent': 'Pepeolithic-ProxyRoute/1.0'})
-    with urllib.request.urlopen(request, timeout=30) as response:
-        body = json.load(response)
-    if 'error' in body:
-        raise ValueError('RPC error: ' + json.dumps(body['error']))
-    return body['result']
+    with DIRECT_OPENER.open(request, timeout=30) as response:
+        data = response.read(MAX_RESPONSE_BYTES + 1)
+    if len(data) > MAX_RESPONSE_BYTES:
+        raise ValueError('RPC response exceeds size limit')
+    try:
+        body = json.loads(data.decode('utf-8'))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ValueError('Malformed JSON-RPC response body') from exc
+    return rpc_result(body)
 
 
 def hex_bytes(value, length=None):
@@ -92,7 +112,20 @@ def self_test():
             pass
         else:
             raise AssertionError('Invalid slot accepted')
-    print('PASS: zero slots, implementation slot, exact clone, clone suffix rejection, empty code, malformed slots')
+    assert rpc_result({'jsonrpc': '2.0', 'id': 1, 'result': 'ok'}) == 'ok'
+    for bad_response in [
+            {}, {'jsonrpc': '1.0', 'id': 1, 'result': 'ok'},
+            {'jsonrpc': '2.0', 'id': True, 'result': 'ok'},
+            {'jsonrpc': '2.0', 'id': 2, 'result': 'ok'},
+            {'jsonrpc': '2.0', 'id': 1},
+    ]:
+        try:
+            rpc_result(bad_response)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError('Invalid RPC envelope accepted')
+    print('PASS: routes, malformed slots, strict JSON-RPC envelope')
 
 
 def main():
