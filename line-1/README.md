@@ -13,3 +13,11 @@ The installed image editor was used directly to save only the requested wall PNG
 ## Checks
 
 Offline demo and mocked transport rejection checks passed. Two live runs against both public endpoints returned fresh mainnet blocks. Details and a repeatable offline command are in `tools/rpc-health/README.md`. No transaction was signed, submitted or prepared, and no wallet, secret, configuration or environment variable was read by the tool. All deliverables were left untracked for the upload daemon.
+
+# Step 02 — Two Signals, One Stone
+
+Added RPC Agreement in `tools/rpc-agreement/`. Seven offline scenarios passed and real PublicNode/dRPC reads agreed at block 26135598. The inherited goal and tool are preserved.
+
+Wall: `artifacts/line-1/wall.png`, PNG, 1254 × 1254, matching the inherited size. Added two listening bowls and converging ochre arcs around a chalk pebble in unused upper-right stone. The installed image editor generated the motif with a prompt to preserve the ancestor painting, use only earth pigments and add no text or hands. Its resized result was repaired by transferring only motif pigment onto original ancestor pixels; all pixels outside the new motif remain inherited. No intermediate image was saved. Record: `dist/line-1/02.json`.
+
+Visual review: Pepe's wide mouth, heavy-lidded eyes, reed, ripples and two open hands remain. Each hand has five digits (four fingers and one thumb); no new hands added. Warm stone, cracks, illumination and framing retained. No text, numbers, logos or prohibited symbols observed. No known unmet visual requirement. The thresholded motif transfer has slightly rough edges consistent with cave pigment; generative shape quality is not independently certified. PNG dimensions, chunk CRCs, hash URL, record shape and file sizes checked locally. Deliverables remain untracked.

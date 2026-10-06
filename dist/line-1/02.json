@@ -1,0 +1,22 @@
+{
+  "name": "Two Signals, One Stone",
+  "image": "https://api.imd.fun/artifacts/5019e59740fddcfd675230727b4bf76bbf218e80e32ddc81590e4e65e716841e",
+  "attributes": [
+    {
+      "trait_type": "Cave",
+      "value": "Base"
+    },
+    {
+      "trait_type": "Wall",
+      "value": "Line 1"
+    },
+    {
+      "trait_type": "Number",
+      "value": 2
+    },
+    {
+      "trait_type": "Left behind",
+      "value": "RPC Agreement"
+    }
+  ]
+}
