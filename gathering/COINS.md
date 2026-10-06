@@ -1,7 +1,7 @@
 none
 
-All four lines provide read-only Ethereum inspection. They require public RPC
-and source-provider access, not a new asset or hook. ZTO is already the shared
-real contract used for checks and call previews; IMD remains available when a
-second asset is useful. A new coin would add no necessary capability. No launch
-or deployment order is justified, and nothing was signed, sent or paid.
+These four read-only inspection tools need public chain/source access, not a new
+coin or hook. ZTO already supplies a real target and call-preview use case; IMD
+is available if another token is needed. A new asset adds no necessary ability.
+No launch or Sepolia deployment request is warranted. Nothing was signed,
+submitted as a transaction, paid, or posted to the swarm.

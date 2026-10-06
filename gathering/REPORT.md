@@ -1,31 +1,38 @@
-# Gathering round 1
+# Gathering round 2
 
-All four documented check commands passed; line 2's `--demo` is a live call,
-not an offline test. Live reads used PublicNode first and dRPC for health.
-For original lines 3/4, a runpy wrapper installed an empty-proxy HTTP opener
-before execution to avoid their default environment discovery. No line changed.
+Read every tool before running it. All documented checks passed with Python
+`-B`; line 2's `--demo` uses live eth_call. No line files were changed.
+Live reads used PublicNode and dRPC; source lookup used Sourcify.
 
 | Line | Tried and working | Broken / unfinished |
 | --- | --- | --- |
-| 1 | `probe.py --demo`, then default live probe: both mainnet endpoints fresh; PublicNode block 26135551, dRPC 26135550, ages 3.42/15.51 seconds. | No observed failure. One sample and local clock cannot establish ongoing reliability or provider honesty. |
-| 2 | `call_preview.py --demo`: expected ZTO revert `0xdb42144d`; ZTO `totalSupply()` with uint256 decoding succeeded, 1000000000000000000000000000. | Fault injection accepted boolean request ID and missing JSON-RPC version. Response is unbounded. Needs strict envelope validation, size bounds, and offline decoder checks. |
-| 3 | `proxy_route.py --self-test`, then ZTO scan: 1287 code bytes, zero implementation/beacon slots, no exact clone, stable block hash at 26135551. | Fault injection accepted wrong request ID and missing JSON-RPC version. Default HTTP opener can read proxy environment settings; must disable it. Beacon implementation and upgrade authority unresolved. |
-| 4 | `source_check.py --self-test`, then ZTO Sourcify lookup: valid unverified result, zero sources. | Default HTTP opener can read proxy environment settings; must disable it. ZTO has no source at this provider; independent compilation is not implemented. Unverified is a valid result, not a safety verdict. |
+| 1 | `rpc-health/probe.py --demo` and `rpc-agreement/compare.py --demo` passed; both also ran live. Fresh heads 26135627/26135626; agreement at 26135626, hash `0xe56e60425876469d99dcefc6792f5afbf79b41a15faf8a743b987def5573d7ec`. | Direct `compare(['only'], ...)` incorrectly reports agreement with one provider; CLI rejects this. Validate provider count inside the reusable function. Sampling cannot prove reliability or independence. |
+| 2 | `preview_checks/check.py`: all five groups passed. `call_preview.py --demo` returned the expected ZTO revert selector `0xdb42144d`. Shared live totalSupply preview also succeeded. Earlier envelope and size defects are fixed. | No observed regression. Unknown custom errors remain selectors; future state/sender can change the result. |
+| 3 | Both `proxy-route/proxy_route.py --self-test` and `proxy-authority/proxy_authority.py --self-test` passed, then both scanned ZTO at block 26135627 with stable hash. 1287 code bytes, zero implementation/admin/beacon slots, no exact clone or observed authority. Earlier proxy discovery/version/boolean-ID defects are fixed. | Fault injection shows both `rpc_result` functions accept float ID `1.0`; require `type(id) is int`. Block number/hash shape is not fully validated before scans. No recognized routing does not establish immutability. |
+| 4 | `source-check/source_check.py --self-test` passed both parser/transport groups. Live ZTO lookup returned unverified with zero sources. Prior proxy discovery defect is fixed; redirects are now rejected. | No observed regression. ZTO source remains absent from this provider; independent compilation is unimplemented. Provider matches are not safety verdicts. |
 
-All goals serve unfamiliar Ethereum workers rather than this cave. None repeats
-another line: endpoint availability, call execution, proxy dispatch, and source
-review differ. Routing/source work touches evidence gathering but adds distinct
-capabilities rather than recreating a generic contract-state evidence tool.
+Each goal is useful outside this cave and distinct: endpoint reliability,
+execution preview, proxy routing/authority, and source retrieval. None repeats
+another line or the excluded prior cave goals; block pinning is supporting
+validation, not a replacement goal.
 
-Keep 21-step scope bounded: line 1 to sampled mainnet reads and disagreement;
-line 2 to eth_call and ABI outcomes (not predicting transaction success);
-line 3 to EIP-1967, exact clones, beacons and observable authority (not proving
-immutability for every proxy); line 4 to source retrieval, compiler metadata and
-review context (not a universal vulnerability detector or compiler farm).
+For 21 steps keep line 1 to sampled reliability/agreement, line 2 to eth_call
+and bounded ABI outcomes, line 3 to EIP-1967/exact clones/beacons and observable
+authority, and line 4 to source bundles/compiler metadata/review context.
+Universal uptime, future transaction guarantees, proving every proxy immutable,
+and a universal compiler or vulnerability service would exceed that scope.
 
-Shared copies correct proxy discovery and lines 2/3 envelope/size checks.
-`python3 -B shared/check.py` passed offline gating, malformed-envelope rejection,
-implementation source selection, beacon exclusion, pinned preview and reorg rejection.
-`python3 -B shared/preflight.py --result-type uint256` passed live at block
-26135560 with stable hash, expected ZTO supply, no recognized routes and no
-verified source. This joins all four lines without claiming a safety verdict.
+Shared addition: `shared/agreed_preview.py` combines line 1 agreement with line 2
+preview at the agreed height, then rechecks that height/hash at every provider.
+The shared agreement copy rejects single-provider use. Refreshed shared line 2
+and 4 copies retain their upstream repairs. Original preflight remains available.
+`shared/check.py` and `shared/check_agreed.py` cover offline composition.
+
+Both shared offline check commands passed. Original shared preflight used dRPC
+when PublicNode returned HTTP 429 and read the expected ZTO supply at 26135634.
+The new agreement gate correctly blocked that rate limit; a later live retry
+passed at 26135639, hash
+`0x6ebe12c97cb4af43e9836383b6079cf5272214f1cb4c3e832c403267a99a3b7e`,
+with supply `1000000000000000000000000000` and both post-call hashes matching.
+Line 4 also retrieved Tether's provider-reported `match`, one source file
+(`TetherToken.sol`, 14,888 characters); it was treated as data, not executed.

@@ -34,3 +34,38 @@ sends transactions, discovers credentials, or accesses environment settings.
 
 Live validation returned ZTO supply `1000000000000000000000000000`, zero
 recognized proxy routes, and unverified Sourcify status. No new coin is needed.
+
+## Round 2: agreement before a call
+
+`agreed_preview.py` reuses line 1's new RPC Agreement with line 2's repaired
+Call Preview. It requires two distinct HTTPS endpoint URLs, previews ZTO
+`totalSupply()` at their agreed height, then rechecks that block's identity at
+every endpoint. A disagreement, lag, stale response, or unavailable provider
+blocks the call. Different URLs do not prove independent infrastructure.
+
+```sh
+python3 -B shared/check_agreed.py
+python3 -B shared/agreed_preview.py
+```
+
+The first command works offline with standard Python alone. It tests gating,
+the exact call height, both post-call checks, hash/height changes at the second
+provider, reverts, RPC errors and decoding failures. The second uses read-only
+public JSON-RPC. Options: repeated `--endpoint`, `--address`, `--data`, and
+`--result-type`. No sender or value overrides are provided. Only the first
+provider executes the call; agreeing block headers do not validate its execution.
+
+Tried: the initial live run blocked on PublicNode HTTP 429. A later retry
+succeeded at block 26135639, hash
+`0x6ebe12c97cb4af43e9836383b6079cf5272214f1cb4c3e832c403267a99a3b7e`,
+returning ZTO supply `1000000000000000000000000000`; both rechecks matched.
+Existing preflight also passed, falling back to dRPC during the rate limit.
+
+Provenance: `tools/rpc_agreement.py` comes from
+`line-1/tools/rpc-agreement/compare.py`, with a local shared import and an added
+provider-count guard for direct callers. Shared Call Preview and Source Check
+were refreshed from their round-2 line originals: 256 KiB strict call replies,
+address validation, no proxy discovery, and source redirect rejection.
+Existing shared Proxy Route retains its strict integer-ID guard. All original
+line folders remain untouched. These are source copies, with no dependencies
+or downloads required for the offline commands.

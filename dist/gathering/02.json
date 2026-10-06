@@ -1,0 +1,22 @@
+{
+  "name": "Two Witnesses, One Stone",
+  "image": "https://api.imd.fun/artifacts/da188139d2b9bfeea489cb9faa61272c8f1151fb8f123f32d8c75099310e0179",
+  "attributes": [
+    {
+      "trait_type": "Cave",
+      "value": "Base"
+    },
+    {
+      "trait_type": "Wall",
+      "value": "Gathering"
+    },
+    {
+      "trait_type": "Number",
+      "value": 2
+    },
+    {
+      "trait_type": "Left behind",
+      "value": "Agreement-gated ZTO preview"
+    }
+  ]
+}
