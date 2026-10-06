@@ -13,6 +13,8 @@ ZTO = "0xd782bdea4ef02a0bd391eb9089470c8080f0a68e"
 POOL_MANAGER = "0x000000000004444c5dc75cb358380d2e3de08a90"
 DEMO_FROM = "0x0000000000000000000000000000000000000001"
 DEFAULT_RPC = "https://ethereum-rpc.publicnode.com"
+MAX_RESPONSE_BYTES = 262144
+
 USER_AGENT = "IdentityMD-call-preview/1.0 (read-only eth_call)"
 
 
@@ -55,11 +57,29 @@ def rpc_call(url, transaction, block):
     # Explicit empty proxy map avoids consulting the host's proxy environment.
     opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
     with opener.open(request, timeout=20) as response:
-        payload = json.load(response)
-    if not isinstance(payload, dict) or payload.get("id") != 1:
-        raise ValueError("malformed JSON-RPC response")
-    return payload
+        raw = response.read(MAX_RESPONSE_BYTES + 1)
+    return parse_response(raw)
 
+
+
+def parse_response(raw):
+    """Bound and validate an eth_call JSON-RPC envelope before interpreting it."""
+    if len(raw) > MAX_RESPONSE_BYTES:
+        raise ValueError("JSON-RPC response exceeds size limit")
+    payload = json.loads(raw)
+    if (not isinstance(payload, dict) or payload.get("jsonrpc") != "2.0"
+            or type(payload.get("id")) is not int or payload["id"] != 1
+            or (("result" in payload) == ("error" in payload))):
+        raise ValueError("malformed JSON-RPC response envelope")
+    if "error" in payload:
+        error = payload["error"]
+        if (not isinstance(error, dict) or type(error.get("code")) is not int
+                or not isinstance(error.get("message"), str)):
+            raise ValueError("malformed JSON-RPC error")
+    elif (not isinstance(payload["result"], str)
+          or not re.fullmatch(r"0x(?:[0-9a-fA-F]{2})*", payload["result"])):
+        raise ValueError("invalid eth_call result")
+    return payload
 
 def revert_data(value):
     """Find an ABI revert payload in common JSON-RPC error shapes."""
@@ -174,7 +194,7 @@ def main(argv=None):
                     report["decoded_return"] = decode_result(raw, args.result_type)
                 except ValueError as exc:
                     report["decode_error"] = str(exc)
-    except (urllib.error.URLError, TimeoutError, ValueError, json.JSONDecodeError) as exc:
+    except (urllib.error.URLError, TimeoutError, ValueError, json.JSONDecodeError, RecursionError) as exc:
         report["status"] = "rpc_error"
         report["error"] = {"message": str(exc)}
     print(json.dumps(report, indent=2))
